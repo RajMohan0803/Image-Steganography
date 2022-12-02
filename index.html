@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!-- Created By CodingNepal -->
+<html lang="en" dir="ltr">
+   <head>
+      <meta charset="utf-8">
+      <title>Image Stegnography | Capstone Project</title>
+      <link rel="stylesheet" href="style.css">
+     
+   
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+   </head>
+   <body  style="background-color: rgb(0, 0, 0)">
+   <br><br><br>
+
+
+    
+    <h1 style="color: white;font-size:50px ; font-weight:400 ;font-family: Arial, Helvetica, sans-serif; ">Hi, welcome to our</h1>
+ 
+    <h1><span style="  
+    top: 40%;
+    left: 40%;
+
+
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(to right, #0462c0,
+    #1bff9c, #2f67ba, #5689ef);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; font-size:50px ; font-weight:700 ; "> Image Stegnography  Tool</span></h1>
+ <br><br><br>
+
+ <h1 style="color: white;font-size:50px ; font-family: Arial, Helvetica, sans-serif; ; font-weight:400 ">You want to</h1>
+ 
+
+      <div style="background-color: rgb(0, 0, 0)" class="container">
+       
+        <br>
+        
+         <div id="cancel-btn">
+            <i class="fas fa-times"></i>
+
+            <button id="custom-btn"><a href="encode-data.html" style="color: white">Encode data</a></button>
+            <input id="default-btn" type="file" hidden>
+            
+   
+      
+               <button onclick="" id="custom-btn"><a href="decode-data.html" style="color: white">Decode data</a></button>
+   
+   
+
+         </div> 
+
+         
+
+            <br><br>
+             
+
+      </div>
+      <script>
+         const wrapper = document.querySelector(".wrapper");
+         const fileName = document.querySelector(".file-name");
+         const defaultBtn = document.querySelector("#default-btn");
+         const customBtn = document.querySelector("#custom-btn");
+         const cancelBtn = document.querySelector("#cancel-btn i");
+         const img = document.querySelector("img");
+         let regExp = /[0-9a-zA-Z\^\&\'\@\{\}\[\]\,\$\=\!\-\#\(\)\.\%\+\~\_ ]+$/;
+         function defaultBtnActive(){
+           defaultBtn.click();
+         }
+         defaultBtn.addEventListener("change", function(){
+           const file = this.files[0];
+           if(file){
+             const reader = new FileReader();
+             reader.onload = function(){
+               const result = reader.result;
+               img.src = result;
+               wrapper.classList.add("active");
+             }
+             cancelBtn.addEventListener("click", function(){
+               img.src = "";
+               wrapper.classList.remove("active");
+             })
+             reader.readAsDataURL(file);
+           }
+           if(this.value){
+             let valueStore = this.value.match(regExp);
+             fileName.textContent = valueStore;
+           }
+         });
+      </script>
+   </body>
+</html>
