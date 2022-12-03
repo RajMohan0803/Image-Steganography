@@ -1,7 +1,7 @@
 
 
 
-#from pyfiglet import Figlet, FigletFont
+
 from PIL import Image
 from bitstring import BitArray
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 from colorama import init
 from colorama import Fore, Back, Style
 from termcolor import colored
-# from progress_bar import ProgressBar, InitBar
+
 
 import sys
 import os
@@ -21,7 +21,7 @@ import time
 import shutil
 
 
-# To make termcolor works
+# As required for some libs
 init()
 
 
@@ -37,7 +37,7 @@ def print_current_files(files):
 
 
 def total_available_space(fileName, files, encryptionKey):
-    # Create zip archive with the files
+    # Create zip archive with the files for compression
 
     zippedFileInput = zipfile.ZipFile("input.zip",
                                       "w",
