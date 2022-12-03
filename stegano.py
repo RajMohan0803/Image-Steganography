@@ -1410,7 +1410,7 @@ def main():
                 print()
                 print(
                     colored(
-                        "Thank you for using BPS Stegano. Happy Hacking >:)",
+                        "quit",
                         'green'))
                 print()
                 sys.exit(0)
