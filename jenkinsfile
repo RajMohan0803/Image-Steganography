@@ -3,9 +3,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                sh 'docker build -t python:1.2.0 .'
-            }
-            steps {
+                sh 'docker build -t python:1.2.0 .',
                 sh 'docker run python:1.2.0'
             }
         }
