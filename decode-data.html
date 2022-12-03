@@ -55,7 +55,7 @@
             
    
       
-               <button onclick="" id="custom-btn">Extract Image 🡺</button>
+               <button onclick="" id="custom-btn"><a href="encoded.png" download="endoded.png">Extract image</a> 🡺</button>
    
    
 
@@ -77,12 +77,19 @@
                </form>
            
                  </label>
-                 <button style="color: #000000" class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>   
+                 <button style="color: #000000" class="btn btn-lg btn-primary btn-block" onClick="changeValue()" type="submit">Submit</button>   
                </form>
              </div>
              <button onclick="" id="custom-btn"><a href="index.html" style="color: white">Go Back</a></button>
    
       </div>
+
+      <script>
+         function changeValue() {
+            document.getElementById('w3review').value="This the message";
+           }
+      </script>
+
       <script>
          const wrapper = document.querySelector(".wrapper");
          const fileName = document.querySelector(".file-name");
