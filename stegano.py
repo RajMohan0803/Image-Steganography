@@ -230,25 +230,6 @@ def bitstring_to_bytes(s):
 
 
 
-def main_menu():
-    print(
-        colored("Select a specific functionality from the menu below", 'cyan'))
-    print()
-    print(colored("1) Hide a secret message into an image", 'yellow'))
-    print(colored("2) Find a secret message from an image", 'yellow'))
-    print(colored("3) Exit ", 'yellow'))
-    print()
-
-
-def hide_menu():
-    print(
-        colored("Select a specific functionality from the menu below", 'cyan'))
-    print()
-    print(colored("1) Hide a raw string", 'yellow'))
-    print(colored("2) Hide a single file, or multiple files", 'yellow'))
-    print(colored("3) Go back", 'yellow'))
-    print()
-
 
 def raw_text_input():
     # These are flags to check for invalid or no input
@@ -631,23 +612,9 @@ def find_input():
     return decodeInputKey, decodeSrcImgPath
 
 
-def hide(encryptionKey, secretMsg, srcImgFile, dstImgFile, files,
-         multipleInputFlag):
+def hide(encryptionKey, secretMsg, srcImgFile, dstImgFile):
 
     # prog = InitBar()
-
-    if (multipleInputFlag == True):
-        zippedFileInput = zipfile.ZipFile("input.zip",
-                                          "w",
-                                          compression=zipfile.ZIP_DEFLATED)
-
-        for i in files:
-            zippedFileInput.write(i)
-
-        zippedFileInput.close()
-
-        with open("input.zip", "rb") as f:
-            zippedBytes = f.read()
 
     backend = default_backend()  # Default backend for the AES Cipher creator
 
@@ -659,10 +626,7 @@ def hide(encryptionKey, secretMsg, srcImgFile, dstImgFile, files,
 
     keyHexString = shaAlgo.hexdigest()
 
-    if (multipleInputFlag == True):
-        secretFileBytes = zippedBytes
-    else:
-        secretMsgBytes = secretMsg.encode()
+    secretMsgBytes = secretMsg.encode()
 
     # Converts the initialization vector to bits
     # Always 128 bits -- os.urandom(16) => 16 bytes = 128 bits
@@ -680,16 +644,10 @@ def hide(encryptionKey, secretMsg, srcImgFile, dstImgFile, files,
                        backend=backend)
     encryptor = AESCipher.encryptor()
 
-    if (multipleInputFlag == True):
-        cipherText = encryptor.update(secretFileBytes)
-    else:
-        cipherText = encryptor.update(secretMsgBytes)
+    cipherText = encryptor.update(secretMsgBytes)
 
     # This is going to be encoded into the actual image
-    if (multipleInputFlag == True):
-        cipherBits = BitArray(bytes=cipherText).bin
-    else:
-        cipherBits = BitArray(bytes=cipherText).bin
+    cipherBits = BitArray(bytes=cipherText).bin
 
     # Get the lengthof the cipher bits
     # The [2:] at the end chops off the 0b part of 0b1000 for example
@@ -749,46 +707,6 @@ def hide(encryptionKey, secretMsg, srcImgFile, dstImgFile, files,
     # zip header -> 50 4B 03 04 = 1010000010010110000001100000100 in binary
     # 31 bits = 11 pixels -- 10 RGB and 1 R
     # If it's a zipped file input
-    if (multipleInputFlag == True):
-        zipHeaderIterator = 0
-        zipHeaderBinary = "1010000010010110000001100000100"
-
-        # pixel (0,10)
-        for row in range(1):
-            for col in range(10, 20, 1):
-                binary_r = decimal_to_binary(
-                    pixelManipulator[col, row][0]).zfill(8)
-                binary_g = decimal_to_binary(
-                    pixelManipulator[col, row][1]).zfill(8)
-                binary_b = decimal_to_binary(
-                    pixelManipulator[col, row][2]).zfill(8)
-
-                binary_r = binary_r[:7] + zipHeaderBinary[zipHeaderIterator]
-
-                binary_g = binary_g[:7] + zipHeaderBinary[zipHeaderIterator +
-                                                          1]
-
-                binary_b = binary_b[:7] + zipHeaderBinary[zipHeaderIterator +
-                                                          2]
-
-                encoded_r = int(binary_r, 2)
-                encoded_g = int(binary_g, 2)
-                encoded_b = int(binary_b, 2)
-
-                pixelManipulator[col, row] = (encoded_r, encoded_g, encoded_b)
-                zipHeaderIterator += 3
-
-        # Encode pixel # 11 -> # 21
-        binary_r = decimal_to_binary(pixelManipulator[col, row][0]).zfill(8)
-
-        binary_r = binary_r[:7] + zipHeaderBinary[zipHeaderIterator]
-
-        encoded_r = int(binary_r, 2)
-
-        # Write the R value, and the remaining values should be the same
-        pixelManipulator[0, 21] = (encoded_r, pixelManipulator[0, 21][1],
-                                   pixelManipulator[0, 21][2])
-
     ###################################################################################################################
     # Time to encode the AES encrypted data turned into a cipher into the RGB values
     # 1) Create a random number with the seed
@@ -1003,9 +921,6 @@ def hide(encryptionKey, secretMsg, srcImgFile, dstImgFile, files,
         "\u001b[36;1m#####################################################################\u001b[0m"
     )
     print()
-
-    if (multipleInputFlag == True):
-        send2trash.send2trash("input.zip")
 
 
 def find(decryptionKey, srcImgFile):
@@ -1258,254 +1173,17 @@ def find(decryptionKey, srcImgFile):
     print("\n")
 
     cipherBytes = bitstring_to_bytes(cipherTextString)
+    try:
+        plainText = decryptor.update(cipherBytes)
 
-    if (multipleFiles == True):
-
-        try:
-            plainBytes = decryptor.update(cipherBytes)
-
-            r = open("output.zip", "wb")
-            r.write(plainBytes)
-            r.close()
-
-            send2trash.send2trash("output.zip")
-
-            overWriteHiddenData = 0
-
-            if (os.path.exists("HIDDEN_DATA")):
-                print(
-                    "\u001b[36;1m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\u001b[0m"
-                )
-                print(
-                    "\u001b[31;1mThere is already a directory - HIDDEN_DATA - in this folder \u001b[0m"
-                )
-                overWriteHiddenData = input(
-                    "Do you want to overwrite the contents of that directory (1 (yes) / 0 (no))-> "
-                )
-
-                print()
-
-                hiddenDataFolderCheck = 0
-
-                while (hiddenDataFolderCheck == 0):
-                    if (str(overWriteHiddenData) == "0"):
-                        r = open("output.zip", "wb")
-                        r.write(plainBytes)
-                        r.close()
-
-                        with zipfile.ZipFile("output.zip",
-                                             "r") as zipFileObject:
-                            zipFileObject.extractall("HIDDEN_DATA")
-
-                        send2trash.send2trash("output.zip")
-
-                        print(
-                            "\u001b[36;1m#####################################################################\u001b[0m"
-                        )
-                        print(
-                            colored(
-                                "Embedded data saved in HIDDEN_DATA folder - APPENDED",
-                                'green'))
-                        print(
-                            "\u001b[36;1m#####################################################################\u001b[0m"
-                        )
-
-                        hiddenDataFolderCheck = 1
-                    elif (str(overWriteHiddenData) == "1"):
-
-                        try:
-                            send2trash.send2trash("HIDDEN_DATA")
-                        except:
-                            print("Failed somewhere. Try again!")
-
-                        r = open("output.zip", "wb")
-                        r.write(plainBytes)
-                        r.close()
-
-                        with zipfile.ZipFile("output.zip",
-                                             "r") as zipFileObject:
-                            zipFileObject.extractall("HIDDEN_DATA")
-
-                        send2trash.send2trash("output.zip")
-
-                        print(
-                            "\u001b[36;1m#####################################################################\u001b[0m"
-                        )
-                        print(
-                            colored(
-                                "Embedded data saved in HIDDEN_DATA folder - OVERWRITTEN",
-                                'green'))
-                        print(
-                            "\u001b[36;1m#####################################################################\u001b[0m"
-                        )
-                        hiddenDataFolderCheck = 1
-                    else:
-                        print()
-                        overWriteHiddenData = input(
-                            "Just type in 1 (yes) or 0 (no) -- Do you want to overwrite the contents of the HIDDEN_DATA directory that is already in this folder -> "
-                        )
-                        print()
-            else:
-                r = open("output.zip", "wb")
-                r.write(plainBytes)
-                r.close()
-
-                with zipfile.ZipFile("output.zip", "r") as zipFileObject:
-                    zipFileObject.extractall("HIDDEN_DATA")
-
-                send2trash.send2trash("output.zip")
-
-                print(
-                    "\u001b[36;1m#####################################################################\u001b[0m"
-                )
-                print(
-                    colored("Embedded data saved in HIDDEN_DATA folder",
-                            'green'))
-                print(
-                    "\u001b[36;1m#####################################################################\u001b[0m"
-                )
-        except:
-            print()
-            print(
-                colored("Error retrieiving data from the image. Try again!",
-                        'red'))
-            send2trash.send2trash("output.zip")
-            print()
-    else:
-
-        try:
-            plainText = decryptor.update(cipherBytes)
-
-            plainText = plainText.decode("utf-8")
-
-            print(
-                "\u001b[36;1m#####################################################################\u001b[0m"
-            )
-            print(colored("HIDDEN MESSAGE: " + str(plainText), 'green'))
-            print(
-                "\u001b[36;1m#####################################################################\u001b[0m"
-            )
-        except:
-            print()
-            print(
-                colored("Error retrieving data from the image. Try again!",
-                        'red'))
-            print()
+        plainText = plainText.decode("utf-8")
+        print(plainText)
+        return plainText
+    except:
+        print()
+        print(
+            colored("Error retrieving data from the image. Try again!",
+                    'red'))
+        print()
 
 
-def main():
-    userMenuInput = 0
-    hideMenuInput = 0
-
-  
-
-    while (userMenuInput != 3):
-        main_menu()
-
-        try:
-            userMenuInput = int(input("Menu option selection -> "))
-            userMenuInput = int(userMenuInput)
-
-            if (userMenuInput == 3):  # Option 3 --> Quit
-                print()
-                print(
-                    colored(
-                        "quit",
-                        'green'))
-                print()
-                sys.exit(0)
-
-            elif (userMenuInput == 1):  # Option 2 --> Hide a message
-
-                # Resetting this back to 0 because if a user quits and comes back,
-                # They will immediately quit because they had quit before (hideMenuInput = 3)
-                # and it wasn't reset so it's still 3
-                hideMenuInput = 0
-
-                while (hideMenuInput != 3):
-
-                    hide_menu()  # 1) Raw String, Files, or Back to Main Menu
-
-                    try:
-                        hideMenuInput = input("Menu option selection -> ")
-                        hideMenuInput = int(hideMenuInput)
-
-                        if (hideMenuInput == 3):
-                            print()
-                            print(
-                                colored("Going back to the main menu.",
-                                        'yellow'))
-                            print()
-                        elif (hideMenuInput == 1):  # Option 1 --> Raw String
-                            encodeInputKey, encodeInputMsg, encodeSrcImgPath, encodeDstImgName = raw_text_input(
-                            )
-
-                            print(colored("Encoding...", "green"))
-                            print()
-
-                            hide(encodeInputKey, encodeInputMsg,
-                                 encodeSrcImgPath, encodeDstImgName, [], False)
-
-                            hideMenuInput = 3
-                        elif (hideMenuInput == 2):  # Option 2 --> File(s)
-                            files, encodeInputKey, encodeSrcImgPath, encodeDstImgName = file_s_input(
-                            )
-
-                            if (len(files) == 0):
-                                hideMenuInput = 3
-                                print()
-                                print(
-                                    "\u001b[34;1mNo files encoded. Thanks for nothing.\u001b[0m "
-                                )
-                                print()
-                            else:
-                                print()
-                                print(colored("Encoding...", "green"))
-                                print()
-
-                                startTime = time.time()
-
-                                hide(encodeInputKey, "", encodeSrcImgPath,
-                                     encodeDstImgName, files, True)
-
-                                endTime = time.time()
-
-                                print(
-                                    colored(
-                                        "Total execution time: " +
-                                        str(endTime - startTime) + " seconds",
-                                        'magenta'))
-                                print()
-
-                                hideMenuInput = 3
-
-                    except ValueError:
-                        print()
-                        print(colored("Invalid Input. Try again.", 'red'))
-                        print()
-
-            elif (userMenuInput == 2):  # Option 3 --> Find a message
-                decodeInputKey, decodeSrcImgPath = find_input()
-
-                startTime = time.time()
-                print(colored("Decoding...", "green"))
-                print()
-                find(decodeInputKey, decodeSrcImgPath)
-                print()
-
-                endTime = time.time()
-
-                print(
-                    colored(
-                        "Total execution time: " + str(endTime - startTime) +
-                        " seconds", 'magenta'))
-                print()
-        except ValueError:
-            print()
-            print(colored("Invalid Input. Try again.", 'red'))
-            print()
-    print()
-
-
-if __name__ == "__main__":
-    main()
